@@ -1,0 +1,34 @@
+connections:
+  from: /Dev1/PFI12 #Ctr6 out
+  to:
+     - /Dev1/RTSI0 #Internal bus channel 0
+
+timer:
+  channel: /Dev1/ctr6
+
+counters:
+  c1:
+      channel: /Dev1/ctr0
+      source: /Dev1/PFI31 #Ctr2 src
+      gate: /Dev1/RTSI0
+  c2:
+      channel: /Dev1/ctr1
+      source: /Dev1/PFI31 #Ctr2 src
+      gate: /Dev1/RTSI0
+  c3:
+      channel: /Dev1/ctr2
+      source: /Dev1/PFI31 #Ctr2 src
+      gate: /Dev1/RTSI0
+  c4:
+      channel: /Dev1/ctr3
+      source: /Dev1/PFI31 #Ctr2 src
+      gate: /Dev1/RTSI0
+  c5:
+      channel: /Dev1/ctr4
+      source: /Dev1/PFI31 #Ctr2 src
+      gate: /Dev1/RTSI0
+  c6:
+      channel: /Dev1/ctr5
+      source: /Dev1/PFI31 #Ctr2 src
+      gate: /Dev1/RTSI0
+
