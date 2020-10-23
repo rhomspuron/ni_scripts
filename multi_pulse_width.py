@@ -28,7 +28,7 @@ class PulseCounter:
         self._task.in_stream.read_all_avail_samp = True
         self._reader = CounterReader(self._task.in_stream)
         self._thread = None
-        self.stop = False
+        self._stop = False
 
     def __del__(self):
         self._task.close()
@@ -43,7 +43,7 @@ class PulseCounter:
             DataTransferActiveTransferMode.INTERRUPT
         self._thread = threading.Thread(target=self._read, args=[samples])
         self._task.start()
-        self.stop = False
+        self._stop = False
         self._thread.start()
 
 
@@ -52,11 +52,12 @@ class PulseCounter:
         return self._task.is_task_done()
 
     def stop(self):
+        self._stop = True
         self._task.stop()
 
     def _read(self, samples):
         i = 0
-        while not self.stop and samples != 0:
+        while not self._stop and samples != 0:
             self._data[i] = self._reader.read_one_sample_double(timeout=-1)
             i += 1
             samples -= 1
@@ -142,6 +143,10 @@ class PulseWidthApplication:
             data[name] = counter.data
         return data
 
+    def stop(self):
+        self._timer.stop()
+        for counter in self._counters.values():
+            counter.stop()
 
 @click.command()
 @click.argument('config', type=click.STRING)
@@ -154,8 +159,12 @@ def count(config, runs, high_time, low_time, samples):
     for i in range(runs):
         print('Run: ', i)
         app.start(high_time, low_time, samples)
+        i =0
         while not app.done:
             time.sleep(0.1)
+            i +=1
+            if i == 20:
+                app.stop()
         data = app.get_data()
         for name, value in data.items():
             print(name, len(value), value)
