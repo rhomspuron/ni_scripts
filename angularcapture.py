@@ -6,20 +6,44 @@ import click
 
 
 @click.command()
-@click.argument('samples', type=click.INT)
-@click.argument('encodertype')
-@click.argument('encoderzindex')
-@click.argument('anlgeunits')
-def angularposition(samples=100, encodertype=EncoderType.X_4, encoderzindex=EncoderZIndexPhase.AHIGH_BHIGH, anlgeunits=AngleUnits.DEGREES, counter='Dev1/ctr6', source_trigger='/Dev1/RTSI0'):
-
-    argum=check_arguments(encodertype, encoderzindex, anlgeunits)
+@click.option('--samples', type=click.INT, default=100)
+@click.option('--encoder-type',
+              type=click.Choice(["EncoderType.TWO_PULSE_COUNTING",
+                                 "EncoderType.X_1", "EncoderType.X_2",
+                                 "EncoderType.X_4"]),
+              default="EncoderType.X_4")
+@click.option('--encoder-zindex',
+              type=click.Choice(["EncoderZIndexPhase.AHIGH_BHIGH",
+                                 "EncoderZIndexPhase.AHIGH_BLOW",
+                                 "EncoderZIndexPhase.ALOW_BHIGH",
+                                 "EncoderZIndexPhase.ALOW_BLOW"]),
+              default="EncoderZIndexPhase.AHIGH_BHIGH")
+@click.option('--angle-units',
+              type=click.Choice(["AngleUnits.DEGREES",
+                                 "AngleUnits.FROM_CUSTOM_SCALE",
+                                 "AngleUnits.RADIANS",
+                                 "AngleUnits.TICKS"]),
+              default="AngleUnits.DEGREES")
+def angularposition(samples, encoder_type, encoder_zindex, angle_units):
+    counter = 'Dev1/ctr6'
+    source_trigger = '/Dev1/RTSI0'
+    encoder_type = eval(encoder_type)
+    encoder_zindex = eval(encoder_zindex)
+    angle_units = eval(angle_units)
 
     with nidaqmx.Task() as task:
         # DAQmxCreateCIAngEncoderChan(taskHandle,"Dev1/ctr0","",DAQmx_Val_X4,0,0.0,DAQmx_Val_AHighBHigh,DAQmx_Val_Degrees,24,0.0,"")
-        # task.ci_channels.add_ci_ang_encoder_chan(counter, "", EncoderType.X_4, False, 0, EncoderZIndexPhase.AHIGH_BHIGH, AngleUnits.DEGREES, 24, 0.0, "")
-        task.ci_channels.add_ci_ang_encoder_chan(counter, "", argum[0], False, 0, argum[1], argum[2], 24, 0.0, "")
+        task.ci_channels.add_ci_ang_encoder_chan(counter,
+                                                 "",
+                                                 encoder_type,
+                                                 False, 0,
+                                                 encoder_zindex,
+                                                 angle_units,
+                                                 24, 0.0, "")
         # DAQmxCfgSampClkTiming(taskHandle,"/Dev1/PFI9",1000.0,DAQmx_Val_Rising,DAQmx_Val_ContSamps,1000)
-        task.timing.cfg_samp_clk_timing(1000.0, source_trigger, samps_per_chan=samples) # (source_trigger, Edge.RISING, AcquisitionType.FINITE, 1000)
+        task.timing.cfg_samp_clk_timing(1000.0,
+                                        source_trigger,
+                                        samps_per_chan=samples)
 
         reader = CounterReader(task.in_stream)
 
@@ -38,52 +62,6 @@ def angularposition(samples=100, encodertype=EncoderType.X_4, encoderzindex=Enco
 
     print('Finish')
     print(data)
-
-def check_arguments(encodertype, encoderzindex, anlgeunits):
-
-    argum = []
-
-    if encodertype == "TWO_PULSE_COUNTING":
-        argum.append(EncoderType.TWO_PULSE_COUNTING)
-    elif encodertype == "X_1":
-        argum.append(EncoderType.X_1)
-    elif encodertype == "X_2":
-        argum.append(EncoderType.X_2)
-    elif encodertype == "X_4":
-        argum.append(EncoderType.X_4)
-    else:
-        usage()
-
-    if encoderzindex == "AHIGH_BHIGH":
-        argum.append(EncoderZIndexPhase.AHIGH_BHIGH)
-    elif encoderzindex == "AHIGH_BLOW":
-        argum.append(EncoderZIndexPhase.AHIGH_BLOW)
-    elif encoderzindex == "ALOW_BHIGH":
-        argum.append(EncoderZIndexPhase.ALOW_BHIGH)
-    elif encoderzindex == "ALOW_BLOW":
-        argum.append(EncoderZIndexPhase.ALOW_BLOW)
-    else:
-        usage()
-
-    if anlgeunits == "DEGREES":
-        argum.append(AngleUnits.DEGREES)
-    elif anlgeunits == "FROM_CUSTOM_SCALE":
-        argum.append(AngleUnits.FROM_CUSTOM_SCALE)
-    elif anlgeunits == "RADIANS":
-        argum.append(AngleUnits.RADIANS)
-    elif anlgeunits == "TICKS":
-        argum.append(AngleUnits.TICKS)
-    else:
-        usage()
-
-    return argum
-
-def usage():
-    print("Usage:")
-    print("python3 AngularPosition-Buff-Cont.py number_samples EncoderType EncoderZIndexPhase AngleUnits")
-    print("Example: python3 AngularPosition-Buff-Cont.py 100 X_4 AHIGH_BHIGH DEGREES\n")
-    print("Loock the manual from view the values: https://nidaqmx-python.readthedocs.io/en/latest/constants.html")
-    return 0
 
 
 if __name__ == '__main__':
