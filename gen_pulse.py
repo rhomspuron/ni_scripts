@@ -22,4 +22,4 @@ def gen_pulses(high_time, low_time, samples, counter='/Dev1/ctr1'):
 if __name__ == '__main__':
     print('Connect output and auxiliar')
     system = nidaqmx.system.System.local()
-    system.connect_terms('/Dev1/PFI32', '/Dev1/PFI33')
+    system.connect_terms('/Dev1/PFI32', '/Dev1/PFI19')

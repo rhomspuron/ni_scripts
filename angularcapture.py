@@ -24,8 +24,10 @@ import click
                                  "AngleUnits.RADIANS",
                                  "AngleUnits.TICKS"]),
               default="AngleUnits.DEGREES")
-def angularposition(samples, encoder_type, encoder_zindex, angle_units):
-    counter = 'Dev1/ctr6'
+@click.option('--counter',
+              type=click.STRING,
+              default='Dev1/ctr4')
+def angularposition(samples, encoder_type, encoder_zindex, angle_units, counter):
     source_trigger = '/Dev1/RTSI0'
     encoder_type = eval(encoder_type)
     encoder_zindex = eval(encoder_zindex)
@@ -36,10 +38,10 @@ def angularposition(samples, encoder_type, encoder_zindex, angle_units):
         task.ci_channels.add_ci_ang_encoder_chan(counter,
                                                  "",
                                                  encoder_type,
-                                                 False, 0,
+                                                 True, 0,
                                                  encoder_zindex,
                                                  angle_units,
-                                                 24, 0.0, "")
+                                                 1, 0.0, "")
         # DAQmxCfgSampClkTiming(taskHandle,"/Dev1/PFI9",1000.0,DAQmx_Val_Rising,DAQmx_Val_ContSamps,1000)
         task.timing.cfg_samp_clk_timing(1000.0,
                                         source_trigger,
