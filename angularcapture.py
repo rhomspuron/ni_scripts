@@ -1,18 +1,19 @@
 import nidaqmx
 from nidaqmx.stream_readers import CounterReader
-from nidaqmx.constants import EncoderType, EncoderZIndexPhase, AngleUnits
+from nidaqmx.constants import EncoderType, EncoderZIndexPhase, AngleUnits, \
+    AcquisitionType
 import numpy as np
 import click
 
 
 @click.command()
 @click.option('--samples', type=click.INT, default=100)
-@click.option('--encoder-type',
+@click.option('--encoder-decoding',
               type=click.Choice(["EncoderType.TWO_PULSE_COUNTING",
                                  "EncoderType.X_1", "EncoderType.X_2",
                                  "EncoderType.X_4"]),
               default="EncoderType.X_4")
-@click.option('--encoder-zindex',
+@click.option('--encoder-zidxphase',
               type=click.Choice(["EncoderZIndexPhase.AHIGH_BHIGH",
                                  "EncoderZIndexPhase.AHIGH_BLOW",
                                  "EncoderZIndexPhase.ALOW_BHIGH",
@@ -23,28 +24,29 @@ import click
                                  "AngleUnits.FROM_CUSTOM_SCALE",
                                  "AngleUnits.RADIANS",
                                  "AngleUnits.TICKS"]),
-              default="AngleUnits.DEGREES")
+              default="AngleUnits.TICKS")
 @click.option('--counter',
               type=click.STRING,
               default='Dev1/ctr4')
-def angularposition(samples, encoder_type, encoder_zindex, angle_units, counter):
+def angularposition(samples, encoder_decoding, encoder_zidxphase, angle_units,
+                    counter):
     source_trigger = '/Dev1/RTSI0'
-    encoder_type = eval(encoder_type)
-    encoder_zindex = eval(encoder_zindex)
+    encoder_decoding = eval(encoder_decoding)
+    encoder_zidxphase = eval(encoder_zidxphase)
     angle_units = eval(angle_units)
 
     with nidaqmx.Task() as task:
         # DAQmxCreateCIAngEncoderChan(taskHandle,"Dev1/ctr0","",DAQmx_Val_X4,0,0.0,DAQmx_Val_AHighBHigh,DAQmx_Val_Degrees,24,0.0,"")
         task.ci_channels.add_ci_ang_encoder_chan(counter,
                                                  "",
-                                                 encoder_type,
-                                                 True, 0,
-                                                 encoder_zindex,
+                                                 encoder_decoding,
+                                                 False, 0,
+                                                 encoder_zidxphase,
                                                  angle_units,
                                                  1, 0.0, "")
         # DAQmxCfgSampClkTiming(taskHandle,"/Dev1/PFI9",1000.0,DAQmx_Val_Rising,DAQmx_Val_ContSamps,1000)
-        task.timing.cfg_samp_clk_timing(1000.0,
-                                        source_trigger,
+        task.timing.cfg_samp_clk_timing(1000, source_trigger,
+                                        sample_mode=AcquisitionType.CONTINUOUS,
                                         samps_per_chan=samples)
 
         reader = CounterReader(task.in_stream)
