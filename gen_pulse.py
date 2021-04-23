@@ -23,3 +23,4 @@ if __name__ == '__main__':
     print('Connect output and auxiliar')
     system = nidaqmx.system.System.local()
     system.connect_terms('/Dev1/PFI32', '/Dev1/RTSI0')
+    gen_pulses()
